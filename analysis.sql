@@ -14,7 +14,7 @@ SELECT DATE_TRUNC('month',order_date)::date AS month,
        ROUND(AVG(amount),2) AS aov
 FROM completed GROUP BY 1 ORDER BY 1;
 
--- 2. Города с GMV > 100 000
+-- 2. Top-5 городов по GMV
 SELECT u.city,
        COUNT(DISTINCT o.order_id) AS orders,
        COUNT(DISTINCT o.user_id) AS buyers,
@@ -24,8 +24,8 @@ JOIN users u USING(user_id)
 JOIN payments p USING(order_id)
 WHERE o.status='completed' AND p.payment_status='paid'
 GROUP BY u.city
-HAVING SUM(p.amount) > 100000
-ORDER BY gmv DESC;
+ORDER BY gmv DESC
+LIMIT 5;
 
 -- 3. Top-3 товара по GMV внутри категории
 WITH product_gmv AS (
@@ -149,7 +149,7 @@ WITH user_stats AS (
 ),
 scored AS (
   SELECT *,
-         NTILE(4) OVER(ORDER BY last_order_date DESC) AS recency_score,
+         NTILE(4) OVER(ORDER BY last_order_date) AS recency_score,
          NTILE(4) OVER(ORDER BY frequency) AS frequency_score,
          NTILE(4) OVER(ORDER BY monetary) AS monetary_score
   FROM user_stats
